@@ -163,6 +163,14 @@ void GameResultMethod::execute(
 		xmlrpc_c::value* const retval) {
 	std::map<std::string, xmlrpc_c::value> result = paramList.getStruct(0);
 
+	std::string winner_string = xmlrpc_c::value_string(result["winner"]);
+	if (winner_string == "you")
+		current_game->GameResult(1);
+	else if (winner_string == "them")
+		current_game->GameResult(-1);
+	else
+		current_game->GameResult(0);
+
 	delete current_game;
 
 	*retval = xmlrpc_c::value_boolean(true);
