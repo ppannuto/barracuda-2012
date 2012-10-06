@@ -5,6 +5,10 @@
 
 import sys
 import random
+import numpy
+import logging
+
+logging.basicConfig(level=logging.DEBUG)
 
 import SimpleXMLRPCServer
 
@@ -16,6 +20,7 @@ class Game(object):
 
     def __init__(self, state):
         self.idx = state['idx']
+        self.opp_idx = (self.idx+1)%2
         self.turn = 0
         self.owned_squares = [[], []]
         self.credits = 98
@@ -51,7 +56,43 @@ class Game(object):
 
     def move(self, idx, move):
         self.owned_squares[idx].append(move)
-        print self.owned_squares
+
+    def build_vtree(self):
+        self.vtree = numpy.zeros(shape=(7,7), dtype='int')
+
+        for x in xrange(7):
+            if self.board[x][6] in self.owned_squares[self.idx]:
+                self.vtree[x][6] = 1
+            elif self.board[x][6] in self.owned_squares[(self.idx+1)%2]:
+                self.vtree[x][6] = -1
+
+        for y in reversed(xrange(6)):
+            for x in xrange(7):
+                if self.board[x][y] in self.owned_squares[self.idx]:
+                    self.vtree[x][y] += 1
+
+                try:
+                    self.vtree[x][y] += self.vtree[x-1][y+1]
+                except IndexError:
+                    pass
+
+                self.vtree[x][y] += self.vtree[x][y+1]
+
+                try:
+                    self.vtree[x][y] += self.vtree[x+1][y+1]
+                except IndexError:
+                    pass
+
+                if self.board[x][y] in self.owned_squares[self.opp_idx]:
+                    self.vtree[x][y] = -1
+
+    def print_vtree(self):
+        s = ""
+        for y in xrange(7):
+            for x in xrange(7):
+                s += "%5d" % (self.vtree[x][y])
+            s += '\n'
+        print s
 
 game = None
 
@@ -66,39 +107,65 @@ def ping():
 
 @serve
 def init_game(state):
-    print state
-    global game
-    game = Game(state)
+    try:
+        print state
+        global game
+        game = Game(state)
+    except Exception as e:
+        logging.exception('init_game')
+        raise e
 
 @serve
 def get_bid(offer, state):
-    #print "Get bid: %s %s" % (offer, state)
-    return random.randrange(0, 3)
+    try:
+        #print "Get bid: %s %s" % (offer, state)
+        return random.randrange(0, 3)
+    except Exception as e:
+        logging.exception('get_bid')
+        raise e
 
 @serve
 def make_choice(offer, state):
-    #print "Make choice: %s %s" % (offer, state)
-    return random.choice(offer)
+    try:
+        #print "Make choice: %s %s" % (offer, state)
+        return random.choice(offer)
+    except Exception as e:
+        logging.exception('make_choice')
+        raise e
 
 @serve
 def move_result(result):
-    #print "Move result: %s" % result
-    global game
-    if result['result'] == 'you_chose':
-        game.move(game.idx, result['choice'])
-    elif result['result'] == 'opponent_chose':
-        game.move((game.idx+1)%2, result['choice'])
-    return False
+    try:
+        #print "Move result: %s" % result
+        global game
+        if result['result'] == 'you_chose':
+            game.move(game.idx, result['choice'])
+        elif result['result'] == 'opponent_chose':
+            game.move((game.idx+1)%2, result['choice'])
+        return False
+    except Exception as e:
+        logging.exception('move_result')
+        raise e
 
 @serve
 def game_result(result):
-    #print "Game result: %s" % result
-    global game
-    print
-    print game
-    print
-    print "  Winner:", result['winner']
-    return False
+    try:
+        #print "Game result: %s" % result
+        global game
+        print
+        print game
+        print
+        print "  Winner:", result['winner']
+        print
+        logging.debug('building tree...')
+        game.build_vtree()
+        logging.debug('printing tree...')
+        game.print_vtree()
+        print 'done'
+        return False
+    except Exception as e:
+        logging.exception('game_result')
+        raise e
 
 if __name__ == "__main__":
     if len(sys.argv) != 2:
