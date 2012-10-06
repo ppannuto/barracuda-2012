@@ -99,6 +99,7 @@ const char* GameState::color_T(int x, int y) {
 
 void GameState::PrintGameState() {
 	for (int x = 0; x < 7; x++) {
+		printf("   ");
 		for (int y = 0; y < 7; y++) {
 			printf("%s%3d%s", color(x, y), board[x+7*y], Game::CLEAR);
 		}
@@ -106,6 +107,7 @@ void GameState::PrintGameState() {
 	}
 	printf("\n");
 	for (int x = 0; x < 7; x++) {
+		printf("   ");
 		for (int y = 0; y < 7; y++) {
 			printf("%s%3d%s", color_T(y, x), board[x+7*y], Game::CLEAR);
 		}
@@ -114,10 +116,20 @@ void GameState::PrintGameState() {
 }
 
 int Game::idx;
+
+const char* Game::BLACK  = "\033[0;40m";
+const char* Game::RED    = "\033[0;41m";
+const char* Game::GREEN  = "\033[0;42m";
+const char* Game::YELLOW = "\033[0;43m";
+const char* Game::BLUE   = "\033[0;44m";
+const char* Game::PURPLE = "\033[0;45m";
+const char* Game::TEAL   = "\033[0;46m";
+const char* Game::GREY   = "\033[0;47m";
+
 const char *Game::CLEAR = "\033[m";
-const char *Game::HORZ  = "\033[0;43m";
-const char *Game::VERT  = "\033[0;44m";
-const char *Game::WIN   = "\033[0;41m";
+const char *Game::HORZ  = Game::YELLOW;
+const char *Game::VERT  = Game::BLUE;
+const char *Game::WIN   = Game::RED;
 
 Game::Game(
 		int player_idx,
@@ -145,6 +157,8 @@ Game::Game(
 #endif
 
 		std::cout << "We are player " << player_idx << " against " << opponent_id << std::endl;
+
+		PrintGroups();
 }
 
 Game::~Game() {
@@ -184,6 +198,10 @@ void Game::GameResult(int winner) {
 	PrintGame();
 
 	Strategy s = Strategy(&game_state);
+
+	std::cout << "is win for " << idx << ": " << s.is_winning_board_for(idx) << std::endl;
+	std::cout << "is win for " << (idx+1)%2 << ": " << s.is_winning_board_for((idx+1)%2) << std::endl;
+
 	if (winner == 1) {
 		if (s.is_winning_board_for(idx)) {
 			std::cout << "We won and we proved it" << std::endl;
@@ -204,6 +222,39 @@ void Game::GameResult(int winner) {
 		}
 	}
 
+}
+
+const char* Game::GroupColor(int x, int y) {
+	int g = board[x+7*y];
+	if (0 <= g && g < 7)
+		return Game::RED;
+	else if (7 <= g && g < 14)
+		return Game::GREEN;
+	else if (14 <= g && g < 21)
+		return Game::YELLOW;
+	else if (21 <= g && g < 28)
+		return Game::BLUE;
+	else if (28 <= g && g < 35)
+		return Game::PURPLE;
+	else if (35 <= g && g < 42)
+		return Game::TEAL;
+	else if (42 <= g && g < 49)
+		return Game::GREY;
+	std::cout << "g " << g << std::endl;
+	assert(false);
+}
+
+void Game::PrintGroups() {
+	printf("----------------------------\n");
+	for (int x = 0; x < 7; x++) {
+		printf("   ");
+		for (int y = 0; y < 7; y++) {
+			printf("%s%3d%s", GroupColor(x, y), board[x+7*y], Game::CLEAR);
+		}
+		printf("\n");
+	}
+	printf("----------------------------\n");
+	printf("\n");
 }
 
 void Game::PrintGame() {

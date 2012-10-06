@@ -57,6 +57,15 @@ private:
 public:
 	static int idx;
 
+	static const char* BLACK;
+	static const char* RED;
+	static const char* GREEN;
+	static const char* YELLOW;
+	static const char* BLUE;
+	static const char* PURPLE;
+	static const char* TEAL;
+	static const char* GREY;
+
 	static const char* CLEAR;
 	static const char* HORZ;
 	static const char* VERT;
@@ -77,6 +86,8 @@ public:
 	void MoveResult(int idx, int choice);
 	void GameResult(int winner);
 
+	const char* GroupColor(int x, int y);
+	void PrintGroups();
 	void PrintGame();
 };
 
