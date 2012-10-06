@@ -139,10 +139,10 @@ void MoveResultMethod::execute(
 	std::string result_string = xmlrpc_c::value_string(result["result"]);
 	if (result_string == "you_chose") {
 		int choice = xmlrpc_c::value_int(result["choice"]);
-		current_game->MoveResult(current_game->idx, choice);
+		current_game->MoveResult(Game::idx, choice);
 	} else if (result_string == "opponent_chose") {
 		int choice = xmlrpc_c::value_int(result["choice"]);
-		current_game->MoveResult((current_game->idx+1)%2, choice);
+		current_game->MoveResult((Game::idx+1)%2, choice);
 	} else {
 		current_game->MoveResult(-1, -1);
 	}
