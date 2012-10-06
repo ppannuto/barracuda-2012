@@ -18,8 +18,24 @@ class Game(object):
     VERT  = '\033[0;44m'
     WIN   = '\033[0;41m'
 
+    def reverse_mapping(self, number):
+	    x = self.square_mapping[number] % 7;
+	    y = self.square_mapping[number] / 7;
+	    return x,y;
+
     def __init__(self, state):
-        self.idx = state['idx']
+        self.square_mapping = list([1]*49);
+	for i in 1:49:
+		for j in 1:49:
+			x = j % 7;
+			y = j / 7;
+			if (self.board[x][y] == i)
+				self.square_mapping[i] = j;
+
+	self.opp_est_cash = 98;
+	self.last_bid = 0;
+
+	self.idx = state['idx']
         self.opp_idx = (self.idx+1)%2
         self.turn = 0
         self.owned_squares = [[], []]
@@ -94,6 +110,53 @@ class Game(object):
             s += '\n'
         print s
 
+    def calc_bid(self, offer):
+		bid = floor(min(opponent_path_average_value(), player_path_average_value())) - 1;
+		if (self.player_can_win(offer, self.idx)):
+			bid = self.credits;
+		elif (self.player_can_win(offer, (self.idx+1)%2), && self.credits >= self.opp_est_cash+1):
+			bid = self.opp_est_cash+1;
+		return bid;
+
+    def opponent_path_average_value(self):
+		path = shortest_path(self.board, (self.idx+1)%2);
+		owned_count = 0;
+		for x,y in path:
+			if (self.board[x][y] in self.owned_squares[idx])
+				owned_count = owned_count + 1;
+		return self.opp_est_cash / (len(path) - owned_count);
+
+    def player_path_average_value(self):
+		path = shortest_path(self.board, self.idx);
+		owned_count = 0;
+		for x,y in path:
+			if (self.board[x][y] in self.owned_squares[idx])
+				owned_count = owned_count + 1;
+		return self.credits / (len(path) - owned_count);
+	
+    def player_can_win(self, offer, idx):
+	    	path = shortest_path(self.board, idx);
+#		a_seen = false;
+#		b_seen = false;
+		owned_count = 0;
+		used_freebie = false;
+		for x,y in path:
+#			if (self.VERT == self.idx && y == 0 || self.HORZ == self.idx && x == 0)
+#				a_seen = true;
+#			if (self.VERT == self.idx && y == 6 || self.HORZ == self.idx && y == 6)
+#				b_seen = true;
+
+			if (self.board[x][y] in self.owned_squares[idx])
+				owned_count = owned_count + 1;
+			elif (!used_freebie && self.board[x][y] in offer)
+				owned_count = owned_count + 1;
+				used_freebie = true;
+		return (owned_count == len(path));
+#		return (owned_count == len(path) && a_seen && b_seen);
+
+def shortest_path(board, player_id, turn):
+	return ((0,0), (1,0), (2,0), (3,0), (4,0), (5,0), (6,0));
+
 game = None
 
 funcs = []
@@ -119,10 +182,14 @@ def init_game(state):
 def get_bid(offer, state):
     try:
         #print "Get bid: %s %s" % (offer, state)
-        return random.randrange(0, 3)
+	global game
+	bid = game.calc_bid(offer);
+	game.last_bid = bid;
+        return bid;
     except Exception as e:
         logging.exception('get_bid')
         raise e
+
 
 @serve
 def make_choice(offer, state):
@@ -142,6 +209,7 @@ def move_result(result):
             game.move(game.idx, result['choice'])
         elif result['result'] == 'opponent_chose':
             game.move((game.idx+1)%2, result['choice'])
+	    self.opp_est_cash = self.opp_est_cash - (self.last_bid + 1);
         return False
     except Exception as e:
         logging.exception('move_result')
