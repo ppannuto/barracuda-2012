@@ -19,10 +19,12 @@ private:
 	int turn_number;
 
 	const char* color(int x, int y);
+	const char* color_T(int x, int y);
 
 public:
-	std::bitset<7*7> owned_squares_0;
-	std::bitset<7*7> owned_squares_1;
+	// These two should always be transposes of one another
+	std::bitset<7*7> owned_squares_row_maj[2];
+	std::bitset<7*7> owned_squares_col_maj[2];
 
 	GameState(
 			const int *board,
