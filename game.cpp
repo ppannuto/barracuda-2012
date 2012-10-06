@@ -17,6 +17,57 @@ GameState::GameState(
 		memset(owned_squares_col_maj, 0, sizeof(owned_squares_col_maj));
 }
 
+GameState::GameState(
+		const GameState& base,
+		const GameMove& move,
+		int bid
+		):
+	board(base.board),
+	our_credits(base.our_credits),
+	max_opp_credits(max_opp_credits)
+{
+	if (move.id > -1) {
+		PlayMove(move.id, move.x, move.y);
+		if (move.IsMyMove())
+			our_credits -= bid;
+		else
+			max_opp_credits -= bid;
+	}
+}
+
+void GameState::GetMoves(GameMove output[15])
+{
+	int put = 0;
+	int start = (turn_number % 7) * 7;
+	int end = start + 7;
+
+	// Provide the null move.
+	output[put].x = output[put].y = 0;
+	output[put++].id = -1;
+
+	// Find all other valid moves.
+	for (int i = 0; i<49; ++i)
+	{
+		int y = i / 7;
+		int x = i % 7;
+		if (board[i] >= start && board[i] < end && !owned_squares_0[x+y*7] && !owned_squares_1[x+y*7])
+		{
+			output[put].x = x;
+			output[put].y = y;
+			output[put++].id = Game::idx;
+			output[put].x = x;
+			output[put].y = y;
+			output[put++].id = !Game::idx;
+		}
+	}
+
+	// The remaining moves are invalid.
+	for (int remaining = put; remaining < 15; ++remaining)
+	{
+		output[remaining].x = -1; // Invalidate this move.
+	}
+}
+
 void GameState::PlayMove(int idx, int x, int y) {
 	SET_BIT(owned_squares_row_maj[idx], x+y*7);
 	SET_BIT(owned_squares_col_maj[idx], x*7+y);

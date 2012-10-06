@@ -5,11 +5,20 @@
 #define SET_BIT(_var, _idx) ((_var) = (_var) | (1UL << (_idx)))
 #define CLR_BIT(_var, _idx) ((_var) &= (~(1UL << (_idx))))
 
+class GameMove {
+	bool IsMyMove() { return id == Game::idx ; }
+	bool IsValid() { return x >= 0 && y >= 0; }
+private:
+	int id;       // Player ID.
+	int x, y;      // Position to play.
+};
+
 class GameState {
 private:
 	const int *board;
 	int our_credits;
 	int max_opp_credits;
+	int turn_number;
 
 	const char* color(int x, int y);
 	const char* color_T(int x, int y);
@@ -23,6 +32,11 @@ public:
 			const int *board,
 			int our_credits,
 			int max_opp_credits
+		 );
+	GameState(
+			const GameState& base,
+			const GameMove& move,
+			int bid
 		 );
 
 	void PlayMove(int idx, int x, int y);
@@ -44,7 +58,7 @@ private:
 	long num_procs;
 
 public:
-	int idx;
+	static int idx;
 
 	static const char* CLEAR;
 	static const char* HORZ;
