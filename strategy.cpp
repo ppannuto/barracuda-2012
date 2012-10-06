@@ -200,7 +200,12 @@ GordonStrategy::GordonStrategy(GameState *gs, int idx) : Strategy(gs), idx(idx) 
 //			std::cout << "Not minimum hamming at (" << x << "," << y << ") is " << path_hamming[x+y*7] << std::endl;
 		}
 	}
-	assert(min != 10);
+
+	if (min == 10) {
+		short_path = -1;
+		return;
+	}
+
 	path_node[short_path][0].erase(path_node[short_path][0].begin());
 	path_node[short_path][0].push_back(short_path);
 

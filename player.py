@@ -7,6 +7,7 @@ import sys
 import random
 import numpy
 import logging
+from copy import deepcopy
 
 logging.basicConfig(level=logging.DEBUG)
 
@@ -56,43 +57,128 @@ class Game(object):
 
     def move(self, idx, move):
         self.owned_squares[idx].append(move)
+        self.turn = (self.turn + 1) % 7
 
-    def build_vtree(self):
-        self.vtree = numpy.zeros(shape=(7,7), dtype='int')
+    def get_bid(self, offer):
+        self.next_move = offer[0]
+
+        s = ""
+        for x in xrange(7):
+            for y in xrange(7):
+                s += "%3d" % (self.board[x][y] / 7)
+            s += '\n'
+        #print s
+        self.shortest_path()
+	#print self.paths
+        return 2
+
+    def process_sp_child(self, cur_x, cur_y, child_x, child_y):
+        if child_x < 0 or child_x > 6:
+            raise IndexError
+        if self.board[cur_x][cur_y] in self.owned_squares[self.idx]:
+            for i in xrange(len(self.paths[child_x][child_y])):
+                path = self.paths[child_x][child_y][i]
+                group = self.groups[child_x][child_y][i]
+                cand = deepcopy(group)
+                if cand not in self.groups[cur_x][cur_y]:
+                    try:
+                        if len(cand) < len(self.groups[cur_x][cur_y]):
+                            self.paths[cur_x][cur_y] = [[]]
+                            self.groups[cur_x][cur_y] = [[]]
+                            self.paths[cur_x][cur_y].append(deepcopy(path))
+                            self.paths[cur_x][cur_y][-1].append((cur_x, cur_y))
+                            self.groups[cur_x][cur_y].append(cand)
+                        elif len(cand) == len(self.groups[cur_x][cur_y]):
+                            self.paths[cur_x][cur_y].append(deepcopy(path))
+                            self.paths[cur_x][cur_y][-1].append((cur_x, cur_y))
+                            self.groups[cur_x][cur_y].append(cand)
+                    except IndexError:
+                        self.paths[cur_x][cur_y].append(deepcopy(path))
+                        self.paths[cur_x][cur_y][-1].append((cur_x, cur_y))
+                        self.groups[cur_x][cur_y].append(cand)
+        else:
+            #print "child_x", child_x
+            #print "child_y", child_y
+            #print len(self.paths[child_x][child_y])
+            #print self.paths[child_x][child_y]
+            #print self.groups[child_x][child_y]
+            for i in xrange(len(self.paths[child_x][child_y])):
+                path = self.paths[child_x][child_y][i]
+                group = self.groups[child_x][child_y][i]
+                if self.board[cur_x][cur_y] / 7 in group:
+                    continue
+                cand = deepcopy(group)
+                cand.append(self.board[cur_x][cur_y] / 7)
+                #print '---'
+                #print self.board[cur_x][cur_y]/7
+                #print group
+                #print '---'
+                if cand not in self.groups[cur_x][cur_y]:
+                    try:
+                        if len(cand) < len(self.groups[cur_x][cur_y][0]):
+                            self.paths[cur_x][cur_y] = [[]]
+                            self.groups[cur_x][cur_y] = [[]]
+                            self.paths[cur_x][cur_y].append(deepcopy(path))
+                            self.paths[cur_x][cur_y][-1].append((cur_x, cur_y))
+                            self.groups[cur_x][cur_y].append(cand)
+                        elif len(cand) == len(self.groups[cur_x][cur_y][0]):
+                            self.paths[cur_x][cur_y].append(deepcopy(path))
+                            self.paths[cur_x][cur_y][-1].append((cur_x, cur_y))
+                            self.groups[cur_x][cur_y].append(cand)
+                        else:
+                            pass
+                    except IndexError:
+                        self.paths[cur_x][cur_y].append(deepcopy(path))
+                        self.paths[cur_x][cur_y][-1].append((cur_x, cur_y))
+                        self.groups[cur_x][cur_y].append(cand)
+                else:
+                    pass
+
+
+
+
+    def shortest_path(self):
+        self.paths = [[[] for y in xrange(7)] for x in xrange(7)]
+        self.groups = [[[] for y in xrange(7)] for x in xrange(7)]
 
         for x in xrange(7):
-            if self.board[x][6] in self.owned_squares[self.idx]:
-                self.vtree[x][6] = 1
-            elif self.board[x][6] in self.owned_squares[(self.idx+1)%2]:
-                self.vtree[x][6] = -1
+            y = 6
+            self.paths[x][y] = [[(x,y)]]
+            self.groups[x][y] = [[self.board[x][y]/7]]
 
         for y in reversed(xrange(6)):
             for x in xrange(7):
-                if self.board[x][y] in self.owned_squares[self.idx]:
-                    self.vtree[x][y] += 1
-
                 try:
-                    self.vtree[x][y] += self.vtree[x-1][y+1]
+                    self.process_sp_child(x, y, x-1, y+1)
+                except IndexError:
+                    pass
+                self.process_sp_child(x, y, x, y+1)
+                try:
+                    self.process_sp_child(x, y, x+1, y+1)
                 except IndexError:
                     pass
 
-                self.vtree[x][y] += self.vtree[x][y+1]
+        min_path = list([10]*10)
+        for x in xrange(7):
+            y = 0
+            for path in self.paths[x][y]:
+                if len(path) < len(min_path):
+                    min_path = path
 
-                try:
-                    self.vtree[x][y] += self.vtree[x+1][y+1]
-                except IndexError:
-                    pass
+        if len(min_path) == 10:
+            print "FUCKETY FUCK"
 
-                if self.board[x][y] in self.owned_squares[self.opp_idx]:
-                    self.vtree[x][y] = -1
+        #print self.paths
+        #print "Path 0, 0"
+        #print self.paths[0][0]
+        #print "Path 0, 5"
+        #print self.paths[0][5]
+        #print "Path 5, 0"
+        #print self.paths[5][0]
+        print'Min path:'
+        print min_path
+        return min_path
 
-    def print_vtree(self):
-        s = ""
-        for y in xrange(7):
-            for x in xrange(7):
-                s += "%5d" % (self.vtree[x][y])
-            s += '\n'
-        print s
 
 game = None
 
@@ -108,9 +194,10 @@ def ping():
 @serve
 def init_game(state):
     try:
-        print state
+        #print state
         global game
         game = Game(state)
+        print game
     except Exception as e:
         logging.exception('init_game')
         raise e
@@ -119,7 +206,7 @@ def init_game(state):
 def get_bid(offer, state):
     try:
         #print "Get bid: %s %s" % (offer, state)
-        return random.randrange(0, 3)
+        return game.get_bid(offer)
     except Exception as e:
         logging.exception('get_bid')
         raise e
@@ -128,7 +215,7 @@ def get_bid(offer, state):
 def make_choice(offer, state):
     try:
         #print "Make choice: %s %s" % (offer, state)
-        return random.choice(offer)
+        return game.next_move
     except Exception as e:
         logging.exception('make_choice')
         raise e
@@ -157,11 +244,6 @@ def game_result(result):
         print
         print "  Winner:", result['winner']
         print
-        logging.debug('building tree...')
-        game.build_vtree()
-        logging.debug('printing tree...')
-        game.print_vtree()
-        print 'done'
         return False
     except Exception as e:
         logging.exception('game_result')
