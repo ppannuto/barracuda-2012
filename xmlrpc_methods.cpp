@@ -25,7 +25,7 @@ PingMethod::PingMethod() {}
 PingMethod::~PingMethod() {}
 
 void PingMethod::execute(
-		const xmlrpc_c::paramList& paramList,
+		const xmlrpc_c::paramList& paramList __attribute__ ((unused)),
 		xmlrpc_c::value* const retval) {
 	*retval = xmlrpc_c::value_boolean(true);
 }
@@ -43,7 +43,7 @@ void InitGameMethod::execute(
 	std::map<std::string, xmlrpc_c::value> gstate = paramList.getStruct(0);
 
 	// Access params like this:
-	int player_id = xmlrpc_c::value_int(gstate["idx"]);
+	//int player_id = xmlrpc_c::value_int(gstate["idx"]);
 
 	// The 'board' needs a little transformation:
 	std::vector<xmlrpc_c::value> unprocessed_board = xmlrpc_c::value_array(gstate["board"]).vectorValueValue();
@@ -53,7 +53,7 @@ void InitGameMethod::execute(
 	}
 
 	// You can access items from the board like this:
-	int someNum = xmlrpc_c::value_int(board[0][0]);
+	//int someNum = xmlrpc_c::value_int(board[0][0]);
 
 	int* real_fucking_array = new int[49];
 	for (int y = 0; y < 7; y++) {
@@ -89,9 +89,16 @@ void GetBidMethod::execute(
 
 	// See InitGameMethod::execute for info on how to use params.
 	// Access the offer vector like this:
-	int offer0 = xmlrpc_c::value_int(offer[0]);
+	//int offer0 = xmlrpc_c::value_int(offer[0]);
 
-	int bid = 0;
+	int offers[6];
+	int offers_len = offer.size();
+
+	for (int i=0; i < offers_len; i++)
+		offers[i] = xmlrpc_c::value_int(offer[i]);
+
+	int bid = current_game->Bid(offers_len, offers);
+
 	*retval = xmlrpc_c::value_int(bid);
 }
 
@@ -110,7 +117,8 @@ void MakeChoiceMethod::execute(
 
 	// See InitGameMethod::execute and GetBidMethod::execute for info on how to use params.
 
-	int choice = -1;
+	int choice = current_game->MakeChoice();
+
 	*retval = xmlrpc_c::value_int(choice);
 }
 
@@ -131,7 +139,14 @@ void MoveResultMethod::execute(
 	std::string result_string = xmlrpc_c::value_string(result["result"]);
 	if (result_string == "you_chose") {
 		int choice = xmlrpc_c::value_int(result["choice"]);
+		current_game->MoveResult(current_game->idx, choice);
+	} else if (result_string == "opponent_chose") {
+		int choice = xmlrpc_c::value_int(result["choice"]);
+		current_game->MoveResult((current_game->idx+1)%2, choice);
+	} else {
+		current_game->MoveResult(-1, -1);
 	}
+
 
 	*retval = xmlrpc_c::value_boolean(true);
 }

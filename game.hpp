@@ -6,36 +6,44 @@
 class GameState {
 private:
 	const int *board;
-	std::bitset<7*7> owned_squares_0;
-	std::bitset<7*7> owned_squares_1;
 	int our_credits;
 	int max_opp_credits;
 
+	const char* color(int x, int y);
+
 public:
+	std::bitset<7*7> owned_squares_0;
+	std::bitset<7*7> owned_squares_1;
+
 	GameState(
 			const int *board,
 			int our_credits,
 			int max_opp_credits
 		 );
+
+	void PrintGameState();
 };
 
 class Game {
 private:
-	int idx;
 	int opponent_id;
 	int turn;
 	int* board;
 	int game_id;
 	float remaining_time;
 
-	GameState game;
+	int next_choice;
+
+	GameState game_state;
+
+public:
+	int idx;
 
 	static const char* CLEAR;
 	static const char* HORZ;
 	static const char* VERT;
 	static const char* WIN;
 
-public:
 	Game(
 			int idx,
 			int opponent_id,
@@ -45,6 +53,12 @@ public:
 			float remaining_time
 			);
 	~Game();
+
+	int Bid(int offers_len, int *offers);
+	int MakeChoice();
+	void MoveResult(int idx, int choice);
+
+	void PrintGame();
 };
 
 #endif
