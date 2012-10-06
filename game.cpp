@@ -9,10 +9,12 @@
 GameState::GameState(
 		const int* board,
 		int our_credits,
-		int max_opp_credits):
+		int max_opp_credits,
+		int turn_number):
 	board(board),
 	our_credits(our_credits),
-	max_opp_credits(max_opp_credits) {
+	max_opp_credits(max_opp_credits),
+	turn_number(turn_number) {
 		memset(owned_squares_row_maj, 0, sizeof(owned_squares_row_maj));
 		memset(owned_squares_col_maj, 0, sizeof(owned_squares_col_maj));
 }
@@ -24,7 +26,8 @@ GameState::GameState(
 		):
 	board(base.board),
 	our_credits(base.our_credits),
-	max_opp_credits(base.max_opp_credits)
+	max_opp_credits(base.max_opp_credits),
+	turn_number(base.turn_number+1)
 {
 	if (move.id > -1) {
 		PlayMove(move.id, move.x, move.y);
