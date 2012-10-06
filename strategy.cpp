@@ -18,6 +18,10 @@ public:
     return false;
   }
 
+  bool is_losing_board() {
+    return false;
+  }
+
   // Is line contained by x,y blocked going south/east depending on player
   bool is_blocked(int player, int x, int y) {
     return false;
