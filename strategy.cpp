@@ -2,10 +2,15 @@ class Strategy {
 public:
   Strategy(GameState *gamestate) gs(gamestate){}
 
-  int bid() {
-    choose_square();
-    
+  int evaluate() {
+    if(is_winning_board())
+      return MAX;
+
+    if(is_losing_board())
+      return MIN;
     // Calculate budget
+
+    advanced_calc();
     return 0;
   }
 
@@ -26,8 +31,10 @@ public:
 
 protected:
   GameState *gs;
+  int MIN = 0;
+  int MAX = 100000000;
 private:
-  virtual int choose_square() = 0;
+  virtual int advanced_calc() = 0;
 };
 
 class StrategyA: public Strategy {
@@ -35,7 +42,7 @@ public:
   StrategyA(Gamestate *gamestate) Strategy(gamestate) {}
 
 private:
-  int choose_square() {
+  int advanced_calc() {
     return 0;
   }
 }  
