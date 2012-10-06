@@ -31,17 +31,23 @@ public:
 
 class GordonStrategy : public Strategy {
 private:
+	int idx;
+
 	int groups[49];
-	std::vector<int> paths[49];
+	std::vector<int> path_node[49];
+	std::vector<int> path_groups[49];
+	int path_hamming[49];
+
 	int lengths[49];
 	int top_down_lengths[49];
 
-	void SetChildLengths(int x, int y);
+	void BuildPath(unsigned long cur_set, int cur_loc, int child_loc);
+	//void SetChildLengths(int x, int y);
 
 public:
 	static const int weight_map[49];
 
-	GordonStrategy(GameState *gs);
+	GordonStrategy(GameState *gs, int idx);
 	void GetMove(int, int*, int&, int&);
 };
 

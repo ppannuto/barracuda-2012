@@ -177,7 +177,7 @@ Game::Game(
 
 	PrintGroups();
 
-	strategy = new GordonStrategy(&game_state);
+	strategy = new GordonStrategy(&game_state, idx);
 }
 
 Game::~Game() {

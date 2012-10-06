@@ -55,7 +55,9 @@ const int GordonStrategy::weight_map[49] = {
 	1,2,3,4,3,2,1,
 	0,1,2,3,2,1,0};
 
-GordonStrategy::GordonStrategy(GameState *gs) : Strategy(gs) {
+GordonStrategy::GordonStrategy(GameState *gs, int idx) : Strategy(gs), idx(idx) {
+	unsigned long cur_set = (idx) ? gs->owned_squares_col_maj[idx] : gs->owned_squares_row_maj[idx];
+
 	for (int x=0; x < 7; x++) {
 		for (int y=0; y<7; y++) {
 			int g = gs->board[x+7*y];
@@ -70,45 +72,39 @@ GordonStrategy::GordonStrategy(GameState *gs) : Strategy(gs) {
 	}
 
 	int x,y;
+	for (x=0; x<7; x++) {
+		y = 6;
+		int my_loc = x+7*y;
+
+		path_node[my_loc].push_back(-1);
+		path_groups[my_loc].push_back(1 << groups[my_loc]);
+	}
 	for (y=5; y>=0; y--) {
 		x = 0;
 		int my_loc = x+7*y;
 		int my_g = groups[my_loc];
 
-		if (my_g != groups[x+7*(y+1)]) {
-			paths[my_loc].push_back(x+7*(y+1));
-		}
-		if (my_g != groups[x+1+7*(y+1)]) {
-			paths[my_loc].push_back(x+1+7*(y+1));
-		}
+		BuildPath(cur_set, my_loc, x+7*(y+1));
+		BuildPath(cur_set, my_loc, x+1+7*(y+1));
 
 		for (x=1; x<6; x++) {
 			my_loc = x+7*y;
 			my_g = groups[my_loc];
 
-			if (my_g != groups[x-1+7*(y+1)]) {
-				paths[my_loc].push_back(x-1+7*(y+1));
-			}
-			if (my_g != groups[x+7*(y+1)]) {
-				paths[my_loc].push_back(x+7*(y+1));
-			}
-			if (my_g != groups[x+1+7*(y+1)]) {
-				paths[my_loc].push_back(x+1+7*(y+1));
-			}
+			BuildPath(cur_set, my_loc, x-1+7*(y+1));
+			BuildPath(cur_set, my_loc, x+7*(y+1));
+			BuildPath(cur_set, my_loc, x+1+7*(y+1));
 		}
 
 		x = 6;
 		my_loc = x+7*y;
 		my_g = groups[my_loc];
 
-		if (my_g != groups[x+7*(y+1)]) {
-			paths[my_loc].push_back(x+7*(y+1));
-		}
-		if (my_g != groups[x-1+7*(y+1)]) {
-			paths[my_loc].push_back(x-1+7*(y+1));
-		}
+		BuildPath(cur_set, my_loc, x-1+7*(y+1));
+		BuildPath(cur_set, my_loc, x+7*(y+1));
 	}
 
+	/*
 	for (x=0; x<7; x++) {
 		int y = 6;
 		lengths[x+7*y] = 1;
@@ -119,7 +115,9 @@ GordonStrategy::GordonStrategy(GameState *gs) : Strategy(gs) {
 			for (unsigned i=0; i<paths[x+y*7].size(); i++) {
 //				std::cout << "x " << x << " y " << y << " i " << i << " paths[x+y*7][i] " << paths[x+y*7][i] << std::endl;
 //				std::cout << "min: " << min << " vs " << lengths[paths[x+y*7][i]] << std::endl;
-				min = MIN(min, lengths[paths[x+y*7][i]]+1);
+				int child_cost = GET_BIT(cur_set, paths[x+y*7][i]) ? 0 : 1;
+//				std::cout << "child_cost " << child_cost << std::endl;
+				min = MIN(min, lengths[paths[x+y*7][i]] + child_cost);
 			}
 			lengths[x+y*7] = min;
 		}
@@ -144,8 +142,66 @@ GordonStrategy::GordonStrategy(GameState *gs) : Strategy(gs) {
 			std::cout << std::endl;
 		}
 	}
+	*/
 }
 
+void GordonStrategy::BuildPath(const unsigned long cur_set, int cur_coord, int child_coord) {
+	// If we have played here
+	if (GET_BIT(cur_set, cur_coord)) {
+		for (unsigned i=0; i<path_groups[child_coord].size(); i++) {
+			// Make sure an identical path has not been added from a previous child
+			int candidate_group = (path_groups[child_coord][i]);
+			unsigned j;
+			for (j=0; j<path_groups[cur_coord].size(); j++) {
+				if (path_groups[cur_coord][j] == candidate_group)
+					break; // Found duplicate
+			}
+			if (j == path_groups[cur_coord].size()) {
+				if (__builtin_popcount(candidate_group) < path_hamming[cur_coord]) {
+					path_hamming[cur_coord] = __builtin_popcount(candidate_group);
+					path_node[cur_coord].clear();
+					path_groups[cur_coord].clear();
+				}
+
+				// Note - NOT else if - this will be true for the first entry after a clear as well
+				if (__builtin_popcount(candidate_group == path_hamming[cur_coord])) {
+					path_node[cur_coord].push_back(child_coord);
+					path_groups[cur_coord].push_back(candidate_group);
+				}
+			}
+		}
+	}
+	// We have not played here
+	else {
+		for (unsigned i=0; i<path_groups[child_coord].size(); i++) {
+			// For each of the child's group bitfields...
+			if (  !( (1 << groups[cur_coord]) & (path_groups[child_coord][i]) )  ) {
+				// If we are NOT in that bitfield, make sure an identical path has not been added from a previous child
+				int candidate_group = (1 << groups[cur_coord]) | (path_groups[child_coord][i]);
+				unsigned j;
+				for (j=0; j<path_groups[cur_coord].size(); j++) {
+					if (path_groups[cur_coord][j] == candidate_group)
+						break; // Found duplicate
+				}
+				if (j == path_groups[cur_coord].size()) {
+					if (__builtin_popcount(candidate_group) < path_hamming[cur_coord]) {
+						path_hamming[cur_coord] = __builtin_popcount(candidate_group);
+						path_node[cur_coord].clear();
+						path_groups[cur_coord].clear();
+					}
+
+					// Note - NOT else if - this will be true for the first entry after a clear as well
+					if (__builtin_popcount(candidate_group == path_hamming[cur_coord])) {
+						path_node[cur_coord].push_back(child_coord);
+						path_groups[cur_coord].push_back(candidate_group);
+					}
+				}
+			}
+		}
+	}
+}
+
+/*
 void GordonStrategy::SetChildLengths(int x, int y) {
 //	std::cout << "setting (" << x << "," << y << ")" << std::endl;
 	for (unsigned i=0; i<paths[x+y*7].size(); i++) {
@@ -156,12 +212,14 @@ void GordonStrategy::SetChildLengths(int x, int y) {
 		}
 	}
 }
+*/
 
 void GordonStrategy::GetMove(
 		int offers_len, int *offers,
 		int &bid, int &next_move) {
 	bid = 14;
 
+	/*
 	std::vector<int> candidates;
 	int min_len = 10;
 
@@ -191,6 +249,7 @@ void GordonStrategy::GetMove(
 			next_move = candidates[i];
 		}
 	}
+	*/
 }
 
 /*
