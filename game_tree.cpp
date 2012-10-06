@@ -21,6 +21,7 @@ static Decision_t GameTree::DecideMove(const GameState &state)
 
 Decision_t GameTree::MakeNodeDecision(const GameState& state, int ply)
 {
+	const int heuristic_bid_cost = 5;
 	const int move_total = 15;
 	GameMove moves[move_total];
 
@@ -33,14 +34,14 @@ Decision_t GameTree::MakeNodeDecision(const GameState& state, int ply)
 	opp_move.value = 0;
 	for (int i=0; i<move_total; ++i)
 	{
-		GameState new_state(state, moves[i]);
+		if (!moves[i].IsValid())
+			continue;
+
+		GameState new_state(state, moves[i], heuristic_bid_cost);
 		double value;
-		int future_cost;
 		if (ply == 0)
 		{
-			pair<double, int> eval = board_evaluator(new_state);
-			value = eval.first;
-			future_cost = eval.second;
+			value = board_evaluator(new_state);
 		}
 		else
 		{
@@ -48,12 +49,12 @@ Decision_t GameTree::MakeNodeDecision(const GameState& state, int ply)
 			value = move.value;
 		}
 		
-		if (!moves[i].opp_move && value > my_move.value)
+		if (moves[i].IsMyMove() && value > my_move.value)
 		{
 			my_move.value = value;
 			my_move.move = moves[i];
 		}
-		else if (moves[i].opp_move && value > opp_move.value)
+		else if (!moves[i].IsMyMove() && value > opp_move.value)
 		{
 			opp_move.value = value;
 			opp_move.move = moves[i];
