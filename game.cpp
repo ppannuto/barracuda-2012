@@ -158,6 +158,13 @@ Game::Game(
 
 		std::cout << "We are player " << player_idx << " against " << opponent_id << std::endl;
 
+		for (int x = 0; x < 7; x++) {
+			for (int y = 0; y < 7; y++) {
+				square_to_x[board[x+y*7]] = x;
+				square_to_y[board[x+y*7]] = y;
+			}
+		}
+
 		PrintGroups();
 }
 
@@ -179,19 +186,7 @@ void Game::MoveResult(int idx, int choice) {
 	if (idx == -1)
 		return;
 
-	int x;
-	int y;
-
-	// Temp hack
-	for (x=0; x<7; x++) {
-		for (y=0; y<7; y++) {
-			if (board[x+y*7] == choice)
-				goto hack;
-		}
-	}
-hack:
-
-	game_state.PlayMove(idx, x, y);
+	game_state.PlayMove(idx, square_to_x[choice], square_to_y[choice]);
 }
 
 void Game::GameResult(int winner) {

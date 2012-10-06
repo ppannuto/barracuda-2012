@@ -1,6 +1,8 @@
 #ifndef BOARD_HPP
 #define BOARD_HPP
 
+#include <map>
+
 #define GET_BIT(_var, _idx) ( !!((_var) & (1UL << (_idx))) )
 #define SET_BIT(_var, _idx) ((_var) = (_var) | (1UL << (_idx)))
 #define CLR_BIT(_var, _idx) ((_var) &= (~(1UL << (_idx))))
@@ -70,6 +72,9 @@ public:
 	static const char* HORZ;
 	static const char* VERT;
 	static const char* WIN;
+
+	std::map<int, int> square_to_x;
+	std::map<int, int> square_to_y;
 
 	Game(
 			int idx,
