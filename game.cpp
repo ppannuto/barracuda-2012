@@ -141,7 +141,6 @@ Game::Game(
 }
 
 Game::~Game() {
-	PrintGame();
 	delete board;
 }
 
@@ -172,6 +171,32 @@ void Game::MoveResult(int idx, int choice) {
 hack:
 
 	game_state.PlayMove(idx, x, y);
+}
+
+void Game::GameResult(int winner) {
+	PrintGame();
+
+	s = Strategy(&game_state);
+	if (winner == 1) {
+		if (s->is_winning_board_for(idx)) {
+			std::cout << "We won and we proved it" << std::endl;
+		} else {
+			std::cout << "FUCKKKKK. We won but we don't think so" << std::endl;
+		}
+	} else if (winner == -1) {
+		if (s->is_winning_board_for((idx+1)%2)) {
+			std::cout << "They won and we proved it" << std::endl;
+		} else {
+			std::cout << "FUCKKKKK. They won but we don't think so" << std::endl;
+		}
+	} else {
+		if ( (s->is_winning_board_for(idx)) || (s->is_winning_board_for((idx+1)%2)) ) {
+			std::cout << "FUCKKKKK. We tied but we don't think so" << std::endl;
+		} else {
+			std::cout << "We Tied and we agree. yay" << std::endl;
+		}
+	}
+
 }
 
 void Game::PrintGame() {

@@ -78,6 +78,7 @@ public:
 	int Bid(int offers_len, int *offers);
 	int MakeChoice();
 	void MoveResult(int idx, int choice);
+	void GameResult(int winner);
 
 	void PrintGame();
 };
