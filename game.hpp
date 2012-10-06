@@ -25,7 +25,8 @@ public:
 	GameState(
 			const int *board,
 			int our_credits,
-			int max_opp_credits
+			int max_opp_credits,
+			int turn_number
 		 );
 	GameState(
 			const GameState& base,

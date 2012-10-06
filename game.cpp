@@ -133,7 +133,7 @@ Game::Game(
 	board(board),
 	game_id(game_id),
 	remaining_time(remaining_time),
-	game_state(GameState(board, credits, credits))
+	game_state(GameState(board, credits, credits, 0))
 	{
 		idx = player_idx;
 #ifdef NUM_PROCS
