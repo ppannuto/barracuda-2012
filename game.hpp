@@ -3,13 +3,7 @@
 
 #include <bitset>
 
-class GameMove {
-	bool IsMyMove() { return id == Game::idx ; }
-	bool IsValid() { return x >= 0 && y >= 0; }
-private:
-	int id;       // Player ID.
-	int x, y;      // Position to play.
-};
+class GameMove;
 
 class GameState {
 private:
@@ -36,6 +30,8 @@ public:
 			const GameMove& move,
 			int bid
 		 );
+
+	void GetMoves(GameMove output[]);
 
 	void PlayMove(int idx, int x, int y);
 
@@ -78,6 +74,14 @@ public:
 	void MoveResult(int idx, int choice);
 
 	void PrintGame();
+};
+
+class GameMove {
+public:
+	bool IsMyMove() const { return id == Game::idx ; };
+	bool IsValid() const { return x >= 0 && y >= 0; };
+	int id;       // Player ID.
+	int x, y;      // Position to play.
 };
 
 #endif
