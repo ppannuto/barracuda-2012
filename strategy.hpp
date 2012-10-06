@@ -34,14 +34,13 @@ private:
 	int idx;
 
 	int groups[49];
-	std::vector<int> path_node[49];
+	std::vector< std::vector<int> > path_node[49];
 	std::vector<int> path_groups[49];
 	int path_hamming[49];
 
-	int short_path_size;
-	int short_path[49];
+	int short_path;
 
-	void ShortestPath(unsigned &);
+	//void ShortestPath(unsigned &, bool &);
 	void BuildPath(unsigned long cur_set, int cur_loc, int child_loc);
 
 public:

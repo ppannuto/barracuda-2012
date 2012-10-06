@@ -176,12 +176,9 @@ Game::Game(
 	}
 
 	PrintGroups();
-
-	strategy = new GordonStrategy(&game_state, idx);
 }
 
 Game::~Game() {
-	delete strategy;
 	delete board;
 }
 
@@ -189,7 +186,10 @@ int Game::Bid(int offers_len, int *offers) {
 	assert(offers_len > 0);
 
 	int bid;
+
+	strategy = new GordonStrategy(&game_state, idx);
 	strategy->GetMove(offers_len, offers, bid, next_choice);
+	delete strategy;
 	return bid;
 }
 
@@ -202,6 +202,7 @@ void Game::MoveResult(int idx, int choice) {
 		return;
 
 	game_state.PlayMove(idx, square_to_x[choice], square_to_y[choice]);
+	assert(false);
 }
 
 void Game::GameResult(int winner) {
