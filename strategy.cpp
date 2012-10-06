@@ -1,52 +1,65 @@
-class Strategy {
-public:
-  Strategy(GameState *gamestate) gs(gamestate){}
+#include "strategy.hpp"
 
-  int evaluate() {
-    if(is_winning_board())
-      return MAX;
+Strategy::Strategy(GameState *gs) : gs(gs) {
+}
 
-    if(is_losing_board())
-      return MIN;
-    // Calculate budget
+int Strategy::evaluate(int idx) {
+	if(is_winning_board_for(idx))
+		return MAX;
 
-    advanced_calc();
-    return 0;
-  }
+	if(is_losing_board_for(idx))
+		return MIN;
 
-  bool is_winning_move(int x, int y) {
-    return false;
-  }
+	// Calculate budget
+	// advanced_calc();
+	return 0;
+}
 
-  bool is_losing_board() {
-    return false;
-  }
+bool Strategy::is_winning_board_for(int idx) {
+	std::bitset<7> pots[7] = {0};
+	std::bitset<7*7> *cur_set = (idx) ? &gs->owned_squares_1 : &gs->owned_squares_0;
 
-  // Is line contained by x,y blocked going south/east depending on player
-  bool is_blocked(int player, int x, int y) {
-    return false;
-  }
+	int d1 = (idx) ? 1 : 7;
+	int d2 = (idx) ? 7 : 1;
 
-  bool is_connected(int player, int x, int y) {
-    return false;
-  }
+	for (int y = 0; y < 7; y++)
+		for (int x = 0; x < 7; x++)
+			pots[y][x] = (*cur_set)[x*d1 + y*d2];
 
-  // Underlying gamestate will have to be updated every round
+	std::bitset<7> cur_pot = 0;
+	for (int pot = 0; pot < 6; pot++) {
+		cur_pot[0] = pots[pot][0] | pots[pot][1];
+		for (int i = 1; i < 6; i++)
+			cur_pot[i] = pots[pot][i-1] | pots[pot][i] | pots[pot][i+1];
+		cur_pot[6] = pots[pot][5] | pots[pot][6];
+		cur_pot &= pots[pot+1];
+	}
 
-protected:
-  GameState *gs;
-  int MIN = 0;
-  int MAX = 100000000;
-private:
-  virtual int advanced_calc() = 0;
-};
+	return cur_pot != 0;
+}
+
+bool Strategy::is_losing_board_for(int idx) {
+	return is_winning_board_for((idx+1)%2);
+}
+
+/*
+// Is line contained by x,y blocked going south/east depending on player
+bool is_blocked(int player, int x, int y) {
+	return false;
+}
+
+bool is_connected(int player, int x, int y) {
+	return false;
+}
+
 
 class StrategyA: public Strategy {
-public:
-  StrategyA(Gamestate *gamestate) Strategy(gamestate) {}
+	public:
+		StrategyA(Gamestate *gs) Strategy(gamestate) {}
 
-private:
-  int advanced_calc() {
-    return 0;
-  }
+	private:
+		int advanced_calc() {
+			return 0;
+		}
 }  
+*/
