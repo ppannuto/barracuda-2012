@@ -12,7 +12,7 @@
 
 #include "xmlrpc_methods.hpp"
 
-const int DEFAULT_PORT = 5150;
+const int DEFAULT_PORT = 8001;
 
 int
 main(int argc, char* argv[])
@@ -40,7 +40,7 @@ main(int argc, char* argv[])
 
     xmlrpc_c::serverAbyss server(xmlrpc_c::serverAbyss::constrOpt().registryP(&registry).portNumber(port));
 
-    std::cout << "Server running on " << port << ". Kill all robots." << std::endl;
+    std::cout << "Server running on " << port << std::endl;
     server.run();
 
     return 0;
