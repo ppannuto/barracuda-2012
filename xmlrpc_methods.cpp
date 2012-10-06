@@ -14,8 +14,8 @@
 
 #include "xmlrpc_methods.hpp"
 
-#include "board.hpp"
-static Board* current_board;
+#include "game.hpp"
+static Game* current_game;
 
 // ------------------------------------------------------------------------
 // PingMethod
@@ -62,7 +62,7 @@ void InitGameMethod::execute(
 		}
 	}
 
-	current_board = new Board(
+	current_game = new Game(
 			xmlrpc_c::value_int(gstate["idx"]),
 			xmlrpc_c::value_int(gstate["opponent_id"]),
 			real_fucking_array,
@@ -148,7 +148,7 @@ void GameResultMethod::execute(
 		xmlrpc_c::value* const retval) {
 	std::map<std::string, xmlrpc_c::value> result = paramList.getStruct(0);
 
-	delete current_board;
+	delete current_game;
 
 	*retval = xmlrpc_c::value_boolean(true);
 }
