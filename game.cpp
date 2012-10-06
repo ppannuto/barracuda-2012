@@ -16,14 +16,25 @@ GameState::GameState(
 }
 
 void GameState::PlayMove(int idx, int x, int y) {
-	std::bitset<7*7> *cur_set = (idx) ? &owned_squares_1 : &owned_squares_0;
-	(*cur_set)[x+y*7] = 1;
+	owned_squares_row_maj[idx][x+y*7] = 1;
+	owned_squares_col_maj[idx][x*7+y] = 1;
 }
 
+// debug
 const char* GameState::color(int x, int y) {
-	if (owned_squares_0[x+7*y])
+	if (owned_squares_row_maj[0][x+7*y])
 		return Game::HORZ;
-	else if (owned_squares_1[x+7*y])
+	else if (owned_squares_row_maj[1][x+7*y])
+		return Game::VERT;
+	else
+		return Game::CLEAR;
+}
+
+// debug
+const char* GameState::color_T(int x, int y) {
+	if (owned_squares_col_maj[0][x+7*y])
+		return Game::HORZ;
+	else if (owned_squares_col_maj[1][x+7*y])
 		return Game::VERT;
 	else
 		return Game::CLEAR;
@@ -33,6 +44,13 @@ void GameState::PrintGameState() {
 	for (int x = 0; x < 7; x++) {
 		for (int y = 0; y < 7; y++) {
 			printf("%s%3d%s", color(x, y), board[x+7*y], Game::CLEAR);
+		}
+		printf("\n");
+	}
+	printf("\n");
+	for (int x = 0; x < 7; x++) {
+		for (int y = 0; y < 7; y++) {
+			printf("%s%3d%s", color_T(y, x), board[x+7*y], Game::CLEAR);
 		}
 		printf("\n");
 	}
