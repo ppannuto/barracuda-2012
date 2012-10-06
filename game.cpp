@@ -12,12 +12,15 @@ GameState::GameState(
 		int our_credits,
 		int max_opp_credits,
 		int turn_number):
-	board(board),
+	// private
 	our_credits(our_credits),
 	max_opp_credits(max_opp_credits),
-	turn_number(turn_number) {
-		memset(owned_squares_row_maj, 0, sizeof(owned_squares_row_maj));
-		memset(owned_squares_col_maj, 0, sizeof(owned_squares_col_maj));
+	turn_number(turn_number),
+	// public
+	board(board)
+{
+	memset(owned_squares_row_maj, 0, sizeof(owned_squares_row_maj));
+	memset(owned_squares_col_maj, 0, sizeof(owned_squares_col_maj));
 }
 
 GameState::GameState(
@@ -25,10 +28,12 @@ GameState::GameState(
 		const GameMove& move,
 		int bid
 		):
-	board(base.board),
+	// private
 	our_credits(base.our_credits),
 	max_opp_credits(base.max_opp_credits),
-	turn_number(base.turn_number+1)
+	turn_number(base.turn_number+1),
+	// public
+	board(base.board)
 {
 	if (move.id > -1) {
 		PlayMove(move.id, move.x, move.y);
@@ -131,6 +136,9 @@ const char *Game::HORZ  = Game::YELLOW;
 const char *Game::VERT  = Game::BLUE;
 const char *Game::WIN   = Game::RED;
 
+std::map<int, int> Game::square_to_x;
+std::map<int, int> Game::square_to_y;
+
 Game::Game(
 		int player_idx,
 		int opponent_id,
@@ -138,7 +146,7 @@ Game::Game(
 		int game_id,
 		int credits,
 		float remaining_time
-		):
+	  ):
 	// private
 	opponent_id(opponent_id),
 	turn(0),
@@ -146,36 +154,43 @@ Game::Game(
 	game_id(game_id),
 	remaining_time(remaining_time),
 	game_state(GameState(board, credits, credits, 0))
-	{
-		idx = player_idx;
+{
+	idx = player_idx;
 #ifdef NUM_PROCS
-		num_procs = NUM_PROCS;
-		std::cout << "Running with fixed number of processors: " << num_procs << std::endl;
+	num_procs = NUM_PROCS;
+	std::cout << "Running with fixed number of processors: " << num_procs << std::endl;
 #else
-		num_procs = sysconf(_SC_NPROCESSORS_ONLN);
-		std::cout << "System has " << num_procs << " processors" << std::endl;
+	num_procs = sysconf(_SC_NPROCESSORS_ONLN);
+	std::cout << "System has " << num_procs << " processors" << std::endl;
 #endif
 
-		std::cout << "We are player " << player_idx << " against " << opponent_id << std::endl;
+	std::cout << "We are player " << player_idx << " against " << opponent_id << std::endl;
 
-		for (int x = 0; x < 7; x++) {
-			for (int y = 0; y < 7; y++) {
-				square_to_x[board[x+y*7]] = x;
-				square_to_y[board[x+y*7]] = y;
-			}
+	square_to_x.clear();
+	square_to_y.clear();
+	for (int x = 0; x < 7; x++) {
+		for (int y = 0; y < 7; y++) {
+			square_to_x[board[x+y*7]] = x;
+			square_to_y[board[x+y*7]] = y;
 		}
+	}
 
-		PrintGroups();
+	PrintGroups();
+
+	strategy = new GordonStrategy(&game_state);
 }
 
 Game::~Game() {
+	delete strategy;
 	delete board;
 }
 
 int Game::Bid(int offers_len, int *offers) {
 	assert(offers_len > 0);
-	next_choice = offers[0];
-	return 1;
+
+	int bid;
+	strategy->GetMove(offers_len, offers, bid, next_choice);
+	return bid;
 }
 
 int Game::MakeChoice() {

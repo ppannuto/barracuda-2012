@@ -2,16 +2,18 @@
 #define BOARD_HPP
 
 #include <map>
+#include <cassert>
 
 #define GET_BIT(_var, _idx) ( !!((_var) & (1UL << (_idx))) )
 #define SET_BIT(_var, _idx) ((_var) = (_var) | (1UL << (_idx)))
 #define CLR_BIT(_var, _idx) ((_var) &= (~(1UL << (_idx))))
 
+#define MIN(_a, _b) (( (_a) < (_b) ) ? (_a) : (_b))
+
 class GameMove;
 
 class GameState {
 private:
-	const int *board;
 	int our_credits;
 	int max_opp_credits;
 	int turn_number;
@@ -20,6 +22,7 @@ private:
 	const char* color_T(int x, int y);
 
 public:
+	const int *board;
 	// These two should always be transposes of one another
 	unsigned long owned_squares_row_maj[2];
 	unsigned long owned_squares_col_maj[2];
@@ -43,6 +46,9 @@ public:
 	void PrintGameState();
 };
 
+// Hooray forward decl's
+#include "strategy.hpp"
+
 class Game {
 private:
 	int opponent_id;
@@ -55,6 +61,8 @@ private:
 
 	GameState game_state;
 	long num_procs;
+
+	Strategy *strategy;
 
 public:
 	static int idx;
@@ -73,8 +81,8 @@ public:
 	static const char* VERT;
 	static const char* WIN;
 
-	std::map<int, int> square_to_x;
-	std::map<int, int> square_to_y;
+	static std::map<int, int> square_to_x;
+	static std::map<int, int> square_to_y;
 
 	Game(
 			int idx,
