@@ -1,7 +1,9 @@
 #ifndef BOARD_HPP
 #define BOARD_HPP
 
-#include <bitset>
+#define GET_BIT(_var, _idx) ( !!((_var) & (1UL << (_idx))) )
+#define SET_BIT(_var, _idx) ((_var) = (_var) | (1UL << (_idx)))
+#define CLR_BIT(_var, _idx) ((_var) &= (~(1UL << (_idx))))
 
 class GameState {
 private:
@@ -14,8 +16,8 @@ private:
 
 public:
 	// These two should always be transposes of one another
-	std::bitset<7*7> owned_squares_row_maj[2];
-	std::bitset<7*7> owned_squares_col_maj[2];
+	unsigned long owned_squares_row_maj[2];
+	unsigned long owned_squares_col_maj[2];
 
 	GameState(
 			const int *board,
