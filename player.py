@@ -25,11 +25,11 @@ class Game(object):
 
     def __init__(self, state):
         self.square_mapping = list([1]*49);
-	for i in 1:49:
-		for j in 1:49:
+	for i in range(1,49):
+		for j in range(1,49):
 			x = j % 7;
 			y = j / 7;
-			if (self.board[x][y] == i)
+			if (self.board[x][y] == i):
 				self.square_mapping[i] = j;
 
 	self.opp_est_cash = 98;
@@ -114,7 +114,7 @@ class Game(object):
 		bid = floor(min(opponent_path_average_value(), player_path_average_value())) - 1;
 		if (self.player_can_win(offer, self.idx)):
 			bid = self.credits;
-		elif (self.player_can_win(offer, (self.idx+1)%2), && self.credits >= self.opp_est_cash+1):
+		elif (self.player_can_win(offer, (self.idx+1)%2) and self.credits >= self.opp_est_cash+1):
 			bid = self.opp_est_cash+1;
 		return bid;
 
@@ -122,7 +122,7 @@ class Game(object):
 		path = shortest_path(self.board, (self.idx+1)%2);
 		owned_count = 0;
 		for x,y in path:
-			if (self.board[x][y] in self.owned_squares[idx])
+			if (self.board[x][y] in self.owned_squares[idx]):
 				owned_count = owned_count + 1;
 		return self.opp_est_cash / (len(path) - owned_count);
 
@@ -130,7 +130,7 @@ class Game(object):
 		path = shortest_path(self.board, self.idx);
 		owned_count = 0;
 		for x,y in path:
-			if (self.board[x][y] in self.owned_squares[idx])
+			if (self.board[x][y] in self.owned_squares[idx]):
 				owned_count = owned_count + 1;
 		return self.credits / (len(path) - owned_count);
 	
@@ -146,9 +146,9 @@ class Game(object):
 #			if (self.VERT == self.idx && y == 6 || self.HORZ == self.idx && y == 6)
 #				b_seen = true;
 
-			if (self.board[x][y] in self.owned_squares[idx])
+			if (self.board[x][y] in self.owned_squares[idx]):
 				owned_count = owned_count + 1;
-			elif (!used_freebie && self.board[x][y] in offer)
+			elif (not used_freebie and self.board[x][y] in offer):
 				owned_count = owned_count + 1;
 				used_freebie = true;
 		return (owned_count == len(path));
