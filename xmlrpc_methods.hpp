@@ -54,3 +54,13 @@ public:
 
     void execute(const xmlrpc_c::paramList& paramList, xmlrpc_c::value* const retval);
 };
+
+// ------------------------------------------------------------------------
+
+class GameResultMethod : public xmlrpc_c::method {
+public:
+    GameResultMethod();
+    ~GameResultMethod();
+
+    void execute(const xmlrpc_c::paramList& paramList, xmlrpc_c::value* const retval);
+};

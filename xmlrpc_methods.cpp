@@ -14,6 +14,9 @@
 
 #include "xmlrpc_methods.hpp"
 
+#include "board.hpp"
+static Board* current_board;
+
 // ------------------------------------------------------------------------
 // PingMethod
 // ------------------------------------------------------------------------
@@ -51,6 +54,22 @@ void InitGameMethod::execute(
 
 	// You can access items from the board like this:
 	int someNum = xmlrpc_c::value_int(board[0][0]);
+
+	int* real_fucking_array = new int[49];
+	for (int y = 0; y < 7; y++) {
+		for (int x = 0; x < 7; x++) {
+			real_fucking_array[x + y*7] = xmlrpc_c::value_int(board[x][y]);
+		}
+	}
+
+	current_board = new Board(
+			xmlrpc_c::value_int(gstate["idx"]),
+			xmlrpc_c::value_int(gstate["opponent_id"]),
+			real_fucking_array,
+			xmlrpc_c::value_int(gstate["id"]),
+			xmlrpc_c::value_int(gstate["credits"]),
+			xmlrpc_c::value_double(gstate["remaining_time"])
+			);
 
 	*retval = xmlrpc_c::value_boolean(true);
 }
@@ -113,6 +132,23 @@ void MoveResultMethod::execute(
 	if (result_string == "you_chose") {
 		int choice = xmlrpc_c::value_int(result["choice"]);
 	}
+
+	*retval = xmlrpc_c::value_boolean(true);
+}
+
+// ------------------------------------------------------------------------
+// GameResultMethod
+// ------------------------------------------------------------------------
+
+GameResultMethod::GameResultMethod() {}
+GameResultMethod::~GameResultMethod() {}
+
+void GameResultMethod::execute(
+		const xmlrpc_c::paramList& paramList,
+		xmlrpc_c::value* const retval) {
+	std::map<std::string, xmlrpc_c::value> result = paramList.getStruct(0);
+
+	delete current_board;
 
 	*retval = xmlrpc_c::value_boolean(true);
 }
