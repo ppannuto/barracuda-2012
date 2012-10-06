@@ -4,6 +4,7 @@
 #include <cassert>
 #include <stdio.h>
 #include <unistd.h>
+#include <string.h>
 
 GameState::GameState(
 		const int* board,
@@ -12,7 +13,8 @@ GameState::GameState(
 	board(board),
 	our_credits(our_credits),
 	max_opp_credits(max_opp_credits) {
-		;
+		memset(owned_squares_row_maj, 0, sizeof(owned_squares_row_maj));
+		memset(owned_squares_col_maj, 0, sizeof(owned_squares_col_maj));
 }
 
 GameState::GameState(
@@ -67,15 +69,15 @@ void GameState::GetMoves(GameMove output[15])
 }
 
 void GameState::PlayMove(int idx, int x, int y) {
-	owned_squares_row_maj[idx][x+y*7] = 1;
-	owned_squares_col_maj[idx][x*7+y] = 1;
+	SET_BIT(owned_squares_row_maj[idx], x+y*7);
+	SET_BIT(owned_squares_col_maj[idx], x*7+y);
 }
 
 // debug
 const char* GameState::color(int x, int y) {
-	if (owned_squares_row_maj[0][x+7*y])
+	if (GET_BIT(owned_squares_row_maj[0], x+7*y))
 		return Game::HORZ;
-	else if (owned_squares_row_maj[1][x+7*y])
+	else if (GET_BIT(owned_squares_row_maj[1], x+7*y))
 		return Game::VERT;
 	else
 		return Game::CLEAR;
@@ -83,9 +85,9 @@ const char* GameState::color(int x, int y) {
 
 // debug
 const char* GameState::color_T(int x, int y) {
-	if (owned_squares_col_maj[0][x+7*y])
+	if (GET_BIT(owned_squares_col_maj[0], x+7*y))
 		return Game::HORZ;
-	else if (owned_squares_col_maj[1][x+7*y])
+	else if (GET_BIT(owned_squares_col_maj[1], x+7*y))
 		return Game::VERT;
 	else
 		return Game::CLEAR;

@@ -16,21 +16,12 @@ int Strategy::evaluate(int idx) {
 }
 
 bool Strategy::is_winning_board_for(int idx) {
-	std::bitset<7> pots[7] = {0};
-	std::bitset<7*7> *cur_set = &gs->owned_squares_row_maj[idx];
+	unsigned long cur_set = (idx) ? gs->owned_squares_col_maj[idx] : gs->owned_squares_row_maj[idx];
 
-	int d1 = (idx) ? 1 : 7;
-	int d2 = (idx) ? 7 : 1;
-
-	for (int y = 0; y < 7; y++)
-		for (int x = 0; x < 7; x++)
-			pots[y][x] = (*cur_set)[x*d1 + y*d2];
-
-	std::bitset<7> cur_pot = 0;
-	for (int pot = 0; pot < 6; pot++) {
-		for (int i = 0; i < 7; i++)
-			cur_pot = (pots[pot] << 1) | pots[pot] | (pots[pot] >> 1);
-		cur_pot &= pots[pot+1];
+	unsigned long cur_pot = (cur_set & 0x7f);
+	for (int i = 1; i < 6; i++) {
+		cur_pot |= (((cur_pot << 1) | (cur_pot >> 1)) & 0x7f);
+		cur_pot &= (cur_set >> (7*(i+1))) & 0x7f;
 	}
 
 	return cur_pot != 0;
