@@ -140,6 +140,8 @@ Game::Game(
 		num_procs = sysconf(_SC_NPROCESSORS_ONLN);
 		std::cout << "System has " << num_procs << " processors" << std::endl;
 #endif
+
+		std::cout << "We are player " << player_idx << " against " << opponent_id << std::endl;
 }
 
 Game::~Game() {
@@ -203,7 +205,7 @@ void Game::GameResult(int winner) {
 
 void Game::PrintGame() {
 	std::cout << "    ";
-	if (idx)
+	if (idx==0)
 		std::cout << HORZ << "US (HORZ)" << CLEAR << "  " << VERT << "THEM" << CLEAR << std::endl;
 	else
 		std::cout << HORZ << "THEM" << CLEAR << "  " << VERT << "US (VERT)" << CLEAR << std::endl;
