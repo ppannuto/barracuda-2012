@@ -38,11 +38,11 @@ private:
 	std::vector<int> path_groups[49];
 	int path_hamming[49];
 
-	int lengths[49];
-	int top_down_lengths[49];
+	int short_path_size;
+	int short_path[49];
 
+	void ShortestPath(unsigned &);
 	void BuildPath(unsigned long cur_set, int cur_loc, int child_loc);
-	//void SetChildLengths(int x, int y);
 
 public:
 	static const int weight_map[49];
