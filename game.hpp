@@ -21,6 +21,8 @@ public:
 			int max_opp_credits
 		 );
 
+	void PlayMove(int idx, int x, int y);
+
 	void PrintGameState();
 };
 
@@ -35,6 +37,7 @@ private:
 	int next_choice;
 
 	GameState game_state;
+	long num_procs;
 
 public:
 	int idx;

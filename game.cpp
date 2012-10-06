@@ -3,6 +3,7 @@
 #include <iostream>
 #include <cassert>
 #include <stdio.h>
+#include <unistd.h>
 
 GameState::GameState(
 		const int* board,
@@ -12,6 +13,11 @@ GameState::GameState(
 	our_credits(our_credits),
 	max_opp_credits(max_opp_credits) {
 		;
+}
+
+void GameState::PlayMove(int idx, int x, int y) {
+	std::bitset<7*7> *cur_set = (idx) ? &owned_squares_1 : &owned_squares_0;
+	(*cur_set)[x+y*7] = 1;
 }
 
 const char* GameState::color(int x, int y) {
@@ -54,6 +60,13 @@ Game::Game(
 	game_state(GameState(board, credits, credits)),
 	// public
 	idx(idx) {
+#ifdef NUM_PROCS
+		num_procs = NUM_PROCS;
+		std::cout << "Running with fixed number of processors: " << num_procs << std::endl;
+#else
+		num_procs = sysconf(_SC_NPROCESSORS_ONLN);
+		std::cout << "System has " << num_procs << " processors" << std::endl;
+#endif
 }
 
 Game::~Game() {
@@ -87,11 +100,7 @@ void Game::MoveResult(int idx, int choice) {
 	}
 hack:
 
-	if (idx == 0) {
-		game_state.owned_squares_0[x+y*7] = 1;
-	} else {
-		game_state.owned_squares_1[x+y*7] = 1;
-	}
+	game_state.PlayMove(idx, x, y);
 }
 
 void Game::PrintGame() {

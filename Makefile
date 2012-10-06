@@ -1,5 +1,7 @@
 CC = $(CXX)
 CPPFLAGS += -Wall -Wextra
+CPPFLAGS += -O0
+CPPFLAGS += -g
 LDFLAGS +=
 LIBS += $(shell xmlrpc-c-config c++2 abyss-server --libs)
 
