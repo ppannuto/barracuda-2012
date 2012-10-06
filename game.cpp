@@ -103,17 +103,17 @@ const char* GameState::color_T(int x, int y) {
 }
 
 void GameState::PrintGameState() {
-	for (int x = 0; x < 7; x++) {
+	for (int y = 0; y < 7; y++) {
 		printf("   ");
-		for (int y = 0; y < 7; y++) {
+		for (int x = 0; x < 7; x++) {
 			printf("%s%3d%s", color(x, y), board[x+7*y], Game::CLEAR);
 		}
 		printf("\n");
 	}
 	printf("\n");
-	for (int x = 0; x < 7; x++) {
+	for (int y = 0; y < 7; y++) {
 		printf("   ");
-		for (int y = 0; y < 7; y++) {
+		for (int x = 0; x < 7; x++) {
 			printf("%s%3d%s", color_T(y, x), board[x+7*y], Game::CLEAR);
 		}
 		printf("\n");
@@ -202,7 +202,6 @@ void Game::MoveResult(int idx, int choice) {
 		return;
 
 	game_state.PlayMove(idx, square_to_x[choice], square_to_y[choice]);
-	assert(false);
 }
 
 void Game::GameResult(int winner) {
@@ -257,9 +256,9 @@ const char* Game::GroupColor(int x, int y) {
 
 void Game::PrintGroups() {
 	printf("----------------------------\n");
-	for (int x = 0; x < 7; x++) {
+	for (int y = 0; y < 7; y++) {
 		printf("   ");
-		for (int y = 0; y < 7; y++) {
+		for (int x = 0; x < 7; x++) {
 			printf("%s%3d%s", GroupColor(x, y), board[x+7*y], Game::CLEAR);
 		}
 		printf("\n");

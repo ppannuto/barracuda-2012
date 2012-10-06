@@ -96,26 +96,26 @@ GordonStrategy::GordonStrategy(GameState *gs, int idx) : Strategy(gs), idx(idx) 
 				(35 <= g && g < 42) ? 5 : 6;
 		}
 	}
-
+/*
 	printf("----------------------------\n");
-	for (int x = 0; x < 7; x++) {
+	for (int y = 0; y < 7; y++) {
 		printf("   ");
-		for (int y = 0; y < 7; y++) {
-			printf("%s   %s", color_helper(gs->board[x+7*y]), Game::CLEAR);
+		for (int x = 0; x < 7; x++) {
+			printf("%s%3d%s", color_helper(gs->board[x+7*y]), x+7*y, Game::CLEAR);
 		}
 		printf("\n");
 	}
 	printf("----------------------------\n");
-	for (int x = 0; x < 7; x++) {
+	for (int y = 0; y < 7; y++) {
 		printf("   ");
-		for (int y = 0; y < 7; y++) {
-			printf("%s   %s", color_helper(groups[x+7*y]*7), Game::CLEAR);
+		for (int x = 0; x < 7; x++) {
+			printf("%s%3d%s", color_helper(groups[x+7*y]*7), x+7*y, Game::CLEAR);
 		}
 		printf("\n");
 	}
 	printf("----------------------------\n");
 	printf("\n");
-
+*/
 	for (int i=0; i<49; i++)
 		path_hamming[i] = 100;
 
@@ -149,25 +149,19 @@ GordonStrategy::GordonStrategy(GameState *gs, int idx) : Strategy(gs), idx(idx) 
 		BuildPath(cur_set, my_loc, x+7*(y+1));
 	}
 
-	for (int i=0; i<49; i++) {
+	for (int i=0; i<7; i++) {
 		printf("%d: ", i);
 		for (unsigned j=0; j < path_node[i].size(); j++) {
 			printf("{");
-			for (unsigned k=0; k < path_node[i][j].size(); k++) {
+			for (unsigned k=1; k < path_node[i][j].size(); k++) {
 				printf("%d ", path_node[i][j][k]);
 			}
+			printf("%d ", i);
 			printf("}");
 		}
 		printf(" || ");
 		for (unsigned j=0; j < path_node[i].size(); j++) {
-			int x = i % 7;
-			int y = i / 7;
-
-			int d1 = (idx) ? x : y;
-			int d2 = (idx) ? y : x;
-
 			printf("[");
-			printf("%d ", gs->board[d1+7*d2]);
 			for (unsigned k=1; k < path_node[i][j].size(); k++) {
 				int coord = path_node[i][j][k];
 				int x = coord % 7;
@@ -175,8 +169,15 @@ GordonStrategy::GordonStrategy(GameState *gs, int idx) : Strategy(gs), idx(idx) 
 
 				int d1 = (idx) ? x : y;
 				int d2 = (idx) ? y : x;
-				printf("%d ", gs->board[d1+7*d2]);
+				printf("%d ", d1+7*d2);
 			}
+			int x = i % 7;
+			int y = i / 7;
+
+			int d1 = (idx) ? x : y;
+			int d2 = (idx) ? y : x;
+
+			printf("%d ", d1+7*d2);
 			printf("]");
 		}
 		printf("\n");
@@ -200,7 +201,26 @@ GordonStrategy::GordonStrategy(GameState *gs, int idx) : Strategy(gs), idx(idx) 
 		}
 	}
 	assert(min != 10);
-	path_node[short_path][0][0] = short_path;
+	path_node[short_path][0].erase(path_node[short_path][0].begin());
+	path_node[short_path][0].push_back(short_path);
+
+	std::cout << "Short Path: ";
+	for (unsigned i=0; i < path_node[short_path][0].size(); i++) {
+		std::cout << path_node[short_path][0][i] << " ";
+	}
+	/*
+	std::cout << " || ";
+	for (unsigned i=0; i < path_node[short_path][0].size(); i++) {
+		int coord = path_node[short_path][0][i];
+		int x = coord % 7;
+		int y = coord / 7;
+		int d1 = (idx) ? x : y;
+		int d2 = (idx) ? y : x;
+		std::cout << gs->board[d1 + 7*d2] << " ";
+	}
+	*/
+	std::cout << std::endl;
+
 
 	/*
 	unsigned spath_mask = 0x7f;
@@ -312,13 +332,16 @@ void GordonStrategy::GetMove(
 
 	for (int i=0; i<offers_len; i++) {
 		for (unsigned j=0; j<path_node[short_path][0].size(); j++) {
-			printf("offers[%d] %d, short_path[%d] %d\n", i, offers[i], j, path_node[short_path][0][j]);
+//			printf("offers[%d] %d, short_path[%d] %d\n", i, offers[i], j, path_node[short_path][0][j]);
 			int coord = path_node[short_path][0][j];
 			int x = coord % 7;
 			int y = coord / 7;
-			int d1 = (idx) ? x : y;
-			int d2 = (idx) ? y : x;
-			if (offers[i] == gs->board[d1*1 + d2*7]) {
+			//int d1 = (idx) ? x : y;
+			//int d2 = (idx) ? y : x;
+			//int desired = gs->board[d1 + 7*d2];
+			int desired = gs->board[x + 7*y];
+			if (offers[i] == desired) {
+				std::cout << "Playing coord " << coord << " (" << x << "," << y << ") is square number " << desired << std::endl;
 				next_move = offers[i];
 				return;
 			}

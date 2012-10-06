@@ -58,7 +58,7 @@ void InitGameMethod::execute(
 	int* real_fucking_array = new int[49];
 	for (int y = 0; y < 7; y++) {
 		for (int x = 0; x < 7; x++) {
-			real_fucking_array[x + y*7] = xmlrpc_c::value_int(board[x][y]);
+			real_fucking_array[x + y*7] = xmlrpc_c::value_int(board[y][x]);
 		}
 	}
 
